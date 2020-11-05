@@ -1,0 +1,85 @@
+buildscript {
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.13'
+    }
+}
+
+plugins {
+    id 'com.google.protobuf' version '0.8.13'
+    id 'org.springframework.boot' version '2.3.5.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id 'java'
+}
+
+group 'com.sushantworld'
+version '1.0-SNAPSHOT'
+sourceCompatibility = 11
+
+repositories {
+    mavenCentral()
+}
+
+def grpcVersion = '1.33.1'
+def nettyTcNativeVersion = '2.0.34.Final'
+def protobufVersion = '3.13.0'
+def protocVersion = '3.13.0'
+def mongodbDriverSyncVersion = '3.11.0'
+
+dependencies {
+    implementation "io.grpc:grpc-alts:${grpcVersion}"
+    implementation "io.grpc:grpc-netty-shaded:${grpcVersion}"
+    implementation "io.grpc:grpc-protobuf:${grpcVersion}"
+    implementation "io.grpc:grpc-stub:${grpcVersion}"
+    implementation "com.google.api.grpc:proto-google-common-protos:2.0.0"
+    implementation "io.grpc:grpc-netty:${grpcVersion}"
+    implementation "io.netty:netty-tcnative-boringssl-static:${nettyTcNativeVersion}"
+    implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"
+    compileOnly "javax.annotation:javax.annotation-api:1.2"
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    testImplementation "io.grpc:grpc-testing:${grpcVersion}"
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
+}
+test {
+    useJUnitPlatform()
+}
+
+protobuf {
+    // Protobuf will search for the protoc command on the systems path by default,
+    // but the next line pulls in a specific version of a precompiled protoc without
+    // requiring it in the system's search path
+    protoc {
+        artifact = "com.google.protobuf:protoc:${protocVersion}"
+    }
+
+    // Plugins for the protobuf compiler. This sections defines a plugin named 'grpc'
+    // which generates java code from the .proto files.
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
+    }
+
+    //The Protobuf plugin generates a task for each protoc run, which is for a sourceSet
+    // in a Java project, or a variant in an Android project. The task has configuration
+    // interfaces that allow you to control the type of outputs, the codegen plugins to use,
+    // and parameters. This section configures all tasks to include the grpc plugin.
+    generateProtoTasks {
+        all()*.plugins { grpc {} }
+    }
+}
+
+// Inform IDEs like IntelliJ IDEA, Eclipse or NetBeans about the generated code. This
+// adds the generated sources under build to your project as a 'sources root'.
+sourceSets {
+    main {
+        java {
+            srcDirs 'build/generated/source/proto/main/grpc'
+            srcDirs 'build/generated/source/proto/main/java'
+        }
+    }
+}
+
+// Generate IntelliJ IDEA's .idea & .iml project files
+apply plugin: 'idea'

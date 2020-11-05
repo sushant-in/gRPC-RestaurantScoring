@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+import "google/type/latlng.proto";//geolocation
+import "google/api/annotations.proto";//annotations to the rpc calls
+import "google/protobuf/empty.proto";
+
+package scoring.v1;
+
+option java_multiple_files = true;
+// Class that will contain descriptor
+option java_outer_classname = "ScoringServiceProto";
+option java_package = "scoring.v1";
+
+service RestaurantScoringService {
+  rpc addRestaurant(Restaurant) returns (Restaurant){
+    option (google.api.http) = {
+      post: "/restaurant"
+      body: "*"
+    };
+  }
+  rpc getRestaurant(RestaurantId) returns (Restaurant){
+    option (google.api.http) = {
+      get:"/restaurant/{id}"
+    };
+  }
+  rpc listRestaurant(RestaurantQuery) returns (stream Restaurant){
+    option (google.api.http) = {
+      get:"/restaurant"
+    };
+  }
+  rpc updateRestaurant(Restaurant) returns (Restaurant){
+    option (google.api.http) = {
+      put: "/restaurant"
+      body: "*"
+    };
+  }
+  rpc deleteRestaurant(RestaurantId) returns (google.protobuf.Empty){
+    option (google.api.http) = {
+      delete:"/restaurant/{id}"
+    };
+  }
+  rpc addInspectionReport(Inspection) returns (Inspection){
+    option (google.api.http) = {
+      post: "/inspection"
+      body: "*"
+    };
+  }
+  rpc getInspectionReport(InspectionId) returns (Inspection){
+    option (google.api.http) = {
+      get:"/inspection/{id}"
+    };
+  }
+  rpc listInspectionReports(InspectionQuery) returns (stream Inspection){
+    option (google.api.http) = {
+      get: "/inspection"
+    };
+  }
+  rpc findInspectionReportsForRestaurant(RestaurantId) returns (stream Inspection){
+    option (google.api.http) = {
+      get: "/inspection"
+    };
+  }
+}
+message RestaurantQuery{
+  string nameKeyword = 1;
+  int32 pageNo = 2;
+  int32 limit = 3;
+  bool outdatedOnly = 4;// not inspected for a year
+}
+message InspectionQuery{
+  int32 pageNo = 1;
+  int32 limit = 2;
+}
+message RestaurantId {
+  string value = 1;
+}
+message InspectionId {
+  string value = 1;
+}
+enum InspectionType {
+  ADMINISTRATIVE_OR_DOC_REVIEW = 0;
+  COMMUNITY_HEALTH_ASSESSMENT = 1;
+  COMPLAINT = 2;
+  COMPLAINT_REINSPECTION_FOLLOWUP = 3;
+  FOODBORNE_ILLNESS_INVESTIGATION = 4;
+  MULTIAGENCY_INVESTIGATION = 5;
+  NEW_CONSTRUCTION = 6;
+  NEW_OWNERSHIP = 7;
+  NEW_OWNERSHIP_FOLLOWUP = 8;
+  NON_INSPECTION_SITE_VISIT = 9;
+  REINSPECTION_FOLLOWUP = 10;
+  ROUTINE_SCHEDULED = 11;
+  ROUTINE_UNSCHEDULED = 12;
+  SPECIAL_EVENT = 13;
+  STRUCTURAL_INVESTIGATION = 14;
+}
+enum RiskCategory {
+  HIGH_RISK = 0;
+  LOW_RISK = 1;
+  MODERATE_RISK = 2;
+}
+message Restaurant {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+  string city = 4;
+  string state = 5;
+  string postal_code = 6;
+  double latitude = 7;
+  double longitude = 8;
+  google.type.LatLng location = 9;
+  string phone_number = 10;
+  string status = 11;
+}
+
+message Violation {
+  string id = 1;
+  string description = 2;
+  RiskCategory risk = 3;
+}
+
+message Inspection {
+  string id = 1;
+  string restaurant_id = 2;
+  google.protobuf.Timestamp inspection_date = 3;
+  int32 score = 4;
+  InspectionType type = 5;
+  repeated Violation violations = 6;
+}
