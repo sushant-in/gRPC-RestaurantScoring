@@ -1,5 +1,5 @@
-#Problem Statement
-###Restaurant score service
+# Problem Statement
+### Restaurant score service
 
     Write a backend service which provides CRUD APIs (preferrably in gRPC) for restaurant scoring. Data to be populated to get start can be found at Data SF.
 
@@ -11,7 +11,7 @@
 
 ## README
 
-##Implementation
+## Implementation
 
 ### Assumptions
     1. Restaurant addition /update is typically legal process (via busineess registration), hence it's expected this record is going to be read-heavy.
