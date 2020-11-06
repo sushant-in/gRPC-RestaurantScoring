@@ -132,11 +132,9 @@ class RestaurantScoringRepositoryTests {
         Optional<Inspection> dbInspection = inspectionRepository.findById("80137_20161005");
         assertTrue(dbInspection.isPresent());
 
-/*
+
         Optional<Restaurant> dbRestaurant = restaurantRepository.findById("80137");
         assertTrue("Restaurant cascade save has failed!",dbRestaurant.isPresent());
-        assertEquals(rs1,dbRestaurant);
-
- */
+        assertEquals(rs1,dbRestaurant.get());
     }
 }

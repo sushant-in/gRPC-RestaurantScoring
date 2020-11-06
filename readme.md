@@ -37,6 +37,7 @@
 ### GRPC Client-Server interactions/testing
     1. Update DB configuration in the file: application.properties under "src/resources"
     2. Start server by running class: RestaurantScoringServer
+         java -jar build/libs/restaurant-scoring-service-1.0-SNAPSHOT.jar
     3. Start Client by running class: RestaurantScoringClient
 
 ### Starting Envoy proxy for transcoding gRPC to HTTP/JSON for API consumption bu Rest clients/UI:

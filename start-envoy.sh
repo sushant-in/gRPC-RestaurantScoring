@@ -5,10 +5,6 @@ if ! [ -x "$(command -v protoc)" ] ; then
     echo "we need protoc to generate a service defintion (*.pb file) that envoy can understand"
     echo "download the precompiled protoc executable and place it in somewhere in your systems PATH!"
     echo "goto: https://github.com/protocolbuffers/protobuf/releases/latest"
-    echo "choose:"
-    echo "       for linux:   protoc-3.6.1-linux-x86_64.zip"
-    echo "       for windows: protoc-3.6.1-win32.zip"
-    echo "       for mac:     protoc-3.6.1-osx-x86_64.zip"
     exit 1
 fi
 
@@ -38,17 +34,17 @@ fi
 
 # check if sudo is required to run docker
 if [ "$(groups | grep -c docker)" -gt "0" ]; then
-    echo "Envoy will run at port 51051 (see envoy-config.yml)"
+    echo "Envoy will run at port 51051 (see envoy-v3.yml)"
     docker run -it --rm --name envoy --network="host" \
              -v "$(pwd)/scoring_service_definition.pb:/data/scoring_service_definition.pb:ro" \
-             -v "$(pwd)/envoy-config.yml:/etc/envoy/envoy.yaml:ro" \
+             -v "$(pwd)/envoy-v3.yml:/etc/envoy/envoy.yaml:ro" \
              envoyproxy/envoy
 else
     echo "you are not in the docker group, running with sudo"
-    echo "Envoy will run at port 51051 (see envoy-config.yml)"
+    echo "Envoy will run at port 51051 (see envoy-v3.yml)"
     sudo docker run -it --rm --name envoy --network="host"\
              -v "$(pwd)/scoring_service_definition.pb:/data/scoring_service_definition.pb:ro" \
-             -v "$(pwd)/envoy-config.yml:/etc/envoy/envoy.yaml:ro" \
+             -v "$(pwd)/envoy-v3.yml:/etc/envoy/envoy.yaml:ro" \
              envoyproxy/envoy-dev
 fi
 
