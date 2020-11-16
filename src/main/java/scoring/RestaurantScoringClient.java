@@ -21,7 +21,7 @@ public class RestaurantScoringClient {
 
     public static void main(String[] args) {
         ManagedChannel channel = ManagedChannelBuilder
-                .forAddress("localhost", 53000)
+                .forAddress("localhost", 8082)
                 .usePlaintext() // disable TLS which is enabled by default and requires certificates
                 .build();
 

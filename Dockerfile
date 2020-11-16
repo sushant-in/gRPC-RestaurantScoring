@@ -1,8 +1,8 @@
-FROM openjdk:11-jdk-alpine
+FROM azul/zulu-openjdk-alpine:11
+ENV MONGO_URL mongodb://10.166.16.24:27017/test
+EXPOSE 53000
+RUN mkdir -p /app/
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
-ARG DEPENDENCY=target/dependency
-COPY ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY ${DEPENDENCY}/META-INF /app/META-INF
-COPY ${DEPENDENCY}/BOOT-INF/classes /app
-ENTRYPOINT ["java","-cp","app:app/lib/*","scoring.RestaurantScoringServer"]
+ADD build/libs/restaurant-scoring-service-1.0-SNAPSHOT.jar /app/restaurant-scoring-service-1.0.jar
+ENTRYPOINT ["java","-jar","/app/restaurant-scoring-service-1.0.jar"]

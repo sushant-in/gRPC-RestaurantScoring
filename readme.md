@@ -32,10 +32,14 @@
 
 
 ### Build process
-    Run command: "./gradlew clean build" from the root dir, this will also execute implemented unit tests, against in-memory mongodb
+    Setup ENV vars for DB access:
+        1. export MONGO_URL=mongodb://IP:PORT
+        2. export MONGO_DBNAME=scoring
+    
+    Run command: "./gradlew clean build" from the root dir, this will also execute implemented unit tests, against in-memory mongodb if content of  application.yml doesn't have DB info.
  
 ### GRPC Client-Server interactions/testing
-    1. Update DB configuration in the file: application.properties under "src/resources"
+    1. Update DB configuration in the file: application.yml under "src/resources" as per hosted DB (start mongo in a container).
     2. Start server by running class: RestaurantScoringServer
          java -jar build/libs/restaurant-scoring-service-1.0-SNAPSHOT.jar
     3. Start Client by running class: RestaurantScoringClient
@@ -56,4 +60,56 @@
     2. gRPC client implementation can be converted as gRPC Service unit test with small change, wasn't sure if would be preferred.
     3. Configure TLS Security with certs and then we can use OAuth2.0 based authentication/authorization or any other token based on available infra.
     4. Setting up interceptors for error handling and Deadlines/Cancellation.
- 
+
+## Docker build and deployment for service
+
+### Docker build to build service image
+    docker build . -t scoring-v1
+### Start mongo-db in container
+    docker run \
+      --name="mongo-27018" \
+      --publish 27018:27017 \
+      --detach \
+      mongo:latest
+
+### Docker run with MongoDB URI
+    1. Instance A:
+    docker run --name="scoring-A" \
+        --publish 8080:53000 \
+        --network="bridge" --detach \
+        -e "MONGO_URL=mongodb://$(ifconfig en0 | awk '/ *inet /{print $2}'):27018" \
+        -e "MONGO_DBNAME=scoring" \
+        scoring-v1:latest
+    2. Instance B:
+        docker run --name="scoring-B" \
+            --publish 8082:53000 \
+            --network="bridge" --detach \
+            -e "MONGO_URL=mongodb://$(ifconfig en0 | awk '/ *inet /{print $2}'):27018" \
+            -e "MONGO_DBNAME=scoring" \
+            scoring-v1:latest
+            
+    3. And so on
+    
+### Attaching service logs to console, while executing client code against one of the service instance
+
+    sushantv@sushantv-a01 scoring-service % docker logs scoring-A --tail="0" --follow
+    2020-11-16 10:44:59.184  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : getRestaurant() called
+    2020-11-16 10:44:59.220  INFO 1 --- [ault-executor-0] org.mongodb.driver.connection            : Opened connection [connectionId{localValue:2, serverValue:2}] to 192.168.1.3:27018
+    2020-11-16 10:44:59.254  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : createRestaurant() called
+    2020-11-16 10:44:59.394  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : getRestaurant() called
+    2020-11-16 10:44:59.409  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : deleteRestaurant() called
+    2020-11-16 10:44:59.425  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : getRestaurant() called
+    2020-11-16 10:44:59.431  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : createRestaurant() called
+    2020-11-16 10:44:59.489  INFO 1 --- [ault-executor-1] s.service.RestaurantScoringServiceImpl   : deleteRestaurant() called
+    2020-11-16 10:44:59.554  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : listRestaurants() called with: limit: 10
+    
+    sushantv@sushantv-a01 scoring-service % docker logs scoring-B --tail="0" --follow
+    2020-11-16 10:48:13.868  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : getRestaurant() called
+    2020-11-16 10:48:13.903  INFO 1 --- [ault-executor-0] org.mongodb.driver.connection            : Opened connection [connectionId{localValue:2, serverValue:5}] to 192.168.1.3:27018
+    2020-11-16 10:48:13.939  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : createRestaurant() called
+    2020-11-16 10:48:14.070  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : getRestaurant() called
+    2020-11-16 10:48:14.086  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : deleteRestaurant() called
+    2020-11-16 10:48:14.101  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : getRestaurant() called
+    2020-11-16 10:48:14.107  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : createRestaurant() called
+    2020-11-16 10:48:14.156  INFO 1 --- [ault-executor-1] s.service.RestaurantScoringServiceImpl   : deleteRestaurant() called
+    2020-11-16 10:48:14.221  INFO 1 --- [ault-executor-0] s.service.RestaurantScoringServiceImpl   : listRestaurants() called with: limit: 10
